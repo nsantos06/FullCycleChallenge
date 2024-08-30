@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  server:
+    image: server
+    build:
+      context: ./server 
+      dockerfile: Dockerfile
+    volumes:
+      - ./server:/src
+    container_name: ${SERVER_HOST}
+    env_file: .env
+    ports:
+     - ${SERVER_PORT}:${SERVER_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  nginx:
+    image: reverse-proxy
+    restart: always
+    build:
+      context: ./nginx 
+      dockerfile: Dockerfile 
+    container_name: ${NGINX_HOST}
+    env_file: .env 
+    ports:
+      - ${NGINX_PORT}:${NGINX_PORT}
+  
+  db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=some_password
+    ports:
+      - "3555:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -psome_password || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
