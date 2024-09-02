@@ -12,6 +12,32 @@ const config = {
 };
 const pool = mysql.createPool(config);
 
+const createTableSql = `
+    CREATE TABLE IF NOT EXISTS people (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL
+    )`;
+
+    pool.query(createTableSql), (err) =>{
+        if(err){
+            console.error('Erro ao criar a tabela ' + err.stack);
+            return;
+        } 
+
+        console.log('Tabela people criada ou já existente');
+    }
+
+    pool.query(`INSERT INTO people(name) VALUES('Arboleda')`, (err) => {
+        if (err) {
+            console.error('Erro ao inserir registro: ' + err.stack);
+        } else{
+            console.log('Registro inserido com sucesso.');
+        }
+    });
+    
+    
+
+
 app.get('/', (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     const selectSql = `SELECT * FROM people`;
@@ -42,10 +68,3 @@ app.listen(port, () => {
     console.log(`Express listening on port ` + port); 
     
 });
-
-pool.query(`INSERT INTO people(name) VALUES('Wellington Rato')`, (err) => {
-    if (err) {
-        console.error('Erro ao inserir registro: ' + err.stack);
-    }
-});
-
